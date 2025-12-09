@@ -1,16 +1,19 @@
 import express from 'express';
 import { authenticateJwt, SECRET } from "../middleware/index";
 import { Todo } from "../db";
+import { todoInput } from '@ayushsyal/common';
 const router = express.Router();
 
-interface CreateTodoInput {
-  title: string;
-  description: string;
-}
+
 
 router.post('/todos', authenticateJwt, (req, res) => {
-  const { title, description } = req.body;
-  const done = false;
+  const parsedInputs = todoInput.safeParse(req.body)
+  if(!parsedInputs.success){
+    return res.status(411).json({msg:"Inputs are not valid"})
+  }
+  const title = parsedInputs.data.title;
+  const description = parsedInputs.data.description;
+  const done = parsedInputs.data.done;
   const userId = req.headers["userId"];
 
   const newTodo = new Todo({ title, description, done, userId });
